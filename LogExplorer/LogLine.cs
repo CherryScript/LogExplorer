@@ -31,14 +31,16 @@ namespace LogExplorer
 
             if(IPisValid(LogLineArray[3]))
                 IP = LogLineArray[3];
+            else notValid += " IP адрес,";
 
             ID = LogLineArray[4];
 
-            if(DateIsValid(LogLineArray[5]))
+            if (DateIsValid(LogLineArray[5]))
                 InDate = DateTime.Parse(LogLineArray[5]);
+            else notValid += " Дата входа,";
             if (DateIsValid(LogLineArray[6]))
                 OutDate = DateTime.Parse(LogLineArray[6]);
-          
+            else notValid += " Дата выхода";
 
             Error = LogLineArray[7];
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace LogExplorer
 {
@@ -11,6 +14,9 @@ namespace LogExplorer
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        List<LogLine> logLineList;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -18,10 +24,27 @@ namespace LogExplorer
             List<LogLine> logLineList = LoadLogFile(Environment.CurrentDirectory + "\\preview.txt");
             logGrid.ItemsSource = logLineList;
 
+            ICollectionView view = CollectionViewSource.GetDefaultView(logLineList);
 
+            view.Filter = str => (str as LogLine).Name.ToLower().Contains(filter.Text.ToLower());
+            view.GroupDescriptions.Add(new PropertyGroupDescription("Name"));
+            
+
+            logGrid.ItemsSource = view;
 
 
         }
+
+
+
+        private void filter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (logGrid.ItemsSource is ICollectionView)
+            {
+                (logGrid.ItemsSource as ICollectionView).Refresh();
+            }
+        }
+
 
         private List<LogLine> LoadLogFile(String path)
         {
@@ -45,6 +68,5 @@ namespace LogExplorer
             }
             return logLineList;
         }
-
     }
 }
