@@ -1,17 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LogExplorer
 {
@@ -24,10 +15,36 @@ namespace LogExplorer
         {
             InitializeComponent();
 
-            LogLine ll = new LogLine("178;Слуцкий Дмитрий Анатольевич;РНПК;192.168.13.213;c9c38e43-ca61-4b27-8943-538d4f579990;13.12.2017 20:46:50;13.12.2017 2:20:10;1;");
-            System.Console.Out(ll.Name);
+            List<LogLine> logLineList = LoadLogFile(Environment.CurrentDirectory + "\\preview.txt");
+            logGrid.ItemsSource = logLineList;
+
+
 
 
         }
+
+        private List<LogLine> LoadLogFile(String path)
+        {
+            List<LogLine> logLineList = new List<LogLine> { };
+            System.IO.StreamReader sr = new System.IO.StreamReader(path);
+            try
+            {
+                string line = null;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    logLineList.Add(new LogLine(line));
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                sr.Close();
+            }
+            return logLineList;
+        }
+
     }
 }
