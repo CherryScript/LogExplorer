@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -15,40 +13,49 @@ namespace LogExplorer
     public partial class MainWindow : Window
     {
 
-        List<LogLine> logLineList;
-
+        private List<LogLine> logLineList;
         public MainWindow()
         {
             InitializeComponent();
 
-            List<LogLine> logLineList = LoadLogFile(Environment.CurrentDirectory + "\\preview.txt");
+            LoadLogFile(Environment.CurrentDirectory + "\\preview.txt");
             logGrid.ItemsSource = logLineList;
 
-            ICollectionView view = CollectionViewSource.GetDefaultView(logLineList);
 
-            view.Filter = str => (str as LogLine).Name.ToLower().Contains(filter.Text.ToLower());
-            view.GroupDescriptions.Add(new PropertyGroupDescription("Name"));
+            // fitter
+            //ICollectionView view = CollectionViewSource.GetDefaultView(logLineList);
+
+            //view.Filter = str => (str as LogLine).Name.ToLower().Contains(filter.Text.ToLower());
+            //view.GroupDescriptions.Add(new PropertyGroupDescription("Name"));
             
+            //logGrid.ItemsSource = view;
 
-            logGrid.ItemsSource = view;
+
+    
+            //WriteToXML<List<LogLine>>("Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)" + "\\Report.xml");
+
 
 
         }
 
 
 
-        private void filter_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (logGrid.ItemsSource is ICollectionView)
-            {
-                (logGrid.ItemsSource as ICollectionView).Refresh();
-            }
-        }
+        //private void filter_TextChanged(object sender, TextChangedEventArgs e)
+        //{
+        //    if (logGrid.ItemsSource is ICollectionView)
+        //    {
+        //        (logGrid.ItemsSource as ICollectionView).Refresh();
+        //    }
+        //}
 
 
-        private List<LogLine> LoadLogFile(String path)
+
+
+
+
+        private void LoadLogFile(String path)
         {
-            List<LogLine> logLineList = new List<LogLine> { };
+            logLineList = new List<LogLine> { };
             System.IO.StreamReader sr = new System.IO.StreamReader(path);
             try
             {
@@ -66,7 +73,15 @@ namespace LogExplorer
             {
                 sr.Close();
             }
-            return logLineList;
+    
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Report userReport = new UserReport(logLineList);
+            userReport.WriteToXML(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+
+
         }
     }
 }

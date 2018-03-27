@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LogExplorer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="533" Width="949">
     <Grid>
         <DataGrid x:Name="logGrid" Margin="20,40,20,20"/>
-        <TextBox x:Name="filter" HorizontalAlignment="Left" Height="23" Margin="20,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="318" TextChanged="filter_TextChanged"/>
+        <!--<TextBox x:Name="filter" HorizontalAlignment="Left" Height="23" Margin="32,17,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="132" TextChanged="filter_TextChanged"/>-->
+        <Button Content="Создать отчет" HorizontalAlignment="Left" Margin="450,10,0,0" VerticalAlignment="Top" Width="112" RenderTransformOrigin="2.453,0.409" Click="Button_Click"/>
     </Grid>
 </Window>
