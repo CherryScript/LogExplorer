@@ -58,6 +58,8 @@ namespace LogExplorer
             return check.IsMatch(dateString);
         }
 
+
+
     }
 
 

@@ -78,8 +78,15 @@ namespace LogExplorer
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Report userReport = new UserReport(logLineList);
-            userReport.WriteToXML(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+            //Report userReport = new UserReport(logLineList);
+            //userReport.WriteToXML(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+            
+
+
+            //Report ipReport = new IPReport(logLineList);
+            // ipReport.WriteToXML(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+
+
 
 
         }

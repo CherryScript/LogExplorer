@@ -5,9 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LogExplorer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="533" Width="949">
+        Title="MainWindow" Height="495" Width="932">
     <Grid>
-        <DataGrid x:Name="logGrid" Margin="20,40,20,20"/>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="0*"/>
+        </Grid.RowDefinitions>
+        <DataGrid x:Name="logGrid" Margin="20,40,20,20" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="30" Binding="{Binding NN}" ClipboardContentBinding="{x:Null}" Header="№"/>
+                <DataGridTextColumn Width="4*" Binding="{Binding Name}" ClipboardContentBinding="{x:Null}" Header="Пользователь"/>
+                <DataGridTextColumn Width="4*" Binding="{Binding Company}" ClipboardContentBinding="{x:Null}" Header="Организация"/>
+                <DataGridTextColumn Width="4*" Binding="{Binding IP}" ClipboardContentBinding="{x:Null}" Header="IP адрес"/>
+                <DataGridTextColumn Width="4*" Binding="{Binding ID}" ClipboardContentBinding="{x:Null}" Header="Уникальный идентификатор сессии"/>
+                <DataGridTextColumn Width="4*" Binding="{Binding InDate}" ClipboardContentBinding="{x:Null}" Header="Дата и время входа в систему"/>
+                <DataGridTextColumn Width="4*" Binding="{Binding OutDate}" ClipboardContentBinding="{x:Null}" Header="Дата и время выхода из системы"/>
+                <DataGridTextColumn Width="30" Binding="{Binding Error}" ClipboardContentBinding="{x:Null}" Header="Код завершения сессии"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
         <!--<TextBox x:Name="filter" HorizontalAlignment="Left" Height="23" Margin="32,17,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="132" TextChanged="filter_TextChanged"/>-->
         <Button Content="Создать отчет" HorizontalAlignment="Left" Margin="450,10,0,0" VerticalAlignment="Top" Width="112" RenderTransformOrigin="2.453,0.409" Click="Button_Click"/>
     </Grid>
