@@ -12,21 +12,29 @@ namespace LogExplorer
         public List<LogLine> logLineList;
 		public List<IReportLine> reportList;
 
-        internal void WriteToXML(string filePath)
+        internal void Write(string filePath)
+        {
+            WriteXML<List<IReportLine>>(reportList, filePath);
+        }
+
+
+        internal void WriteXML<T>(T rl, string filePath)
         {
             XmlDocument xmlDoc = new XmlDocument();
             XPathNavigator nav = xmlDoc.CreateNavigator();
             using (XmlWriter writer = nav.AppendChild())
             {
-                XmlSerializer ser = new XmlSerializer(typeof(List<LogLine>), new XmlRootAttribute("TheRootElementName"));
-                ser.Serialize(writer, reportList);
+                XmlSerializer ser = new XmlSerializer(typeof(IReportLine), new XmlRootAttribute("TheRootElementName"));
+                ser.Serialize(writer, rl);
             }
             File.WriteAllText(filePath, xmlDoc.InnerXml);
         }
 
-		//Сюда можно запихнуть общие для всех лайнов методы. Ну, типа компаратора, который при сортировке будет срабатывать
-		public interface IReportLine {}
+        //Сюда можно запихнуть общие для всех лайнов методы. Ну, типа компаратора, который при сортировке будет срабатывать
+
+
     }
+    public interface IReportLine {}
 
     class UserReport : Report
     {
@@ -142,7 +150,7 @@ namespace LogExplorer
 
 
 
-    //фабрика
+    //абстрактная фабрика, сериализатор ругается на абстракцию
 
     //class Report
     //{
