@@ -35,51 +35,54 @@ namespace LogExplorer
 			DateTime setTime = new DateTime(2017, 7, 6, 00, 00, 00);
 			this.logLineList = logLineList;
 			DateTime startTime = setTime.AddHours (-24);
+
 			reportList = new List<IReportLine> ();
 			reportList.Add (UserReportLine.GetHeader());
 			foreach (LogLine line in logLineList) {
-				if (ll.OutDate <= startTime || ll.OutDate >= setTime) { continue; }
+				if (line.OutDate <= startTime || line.OutDate >= setTime) { continue; }
 				reportList.Add(UserReportLine.Obtain(line));
 			}
 			//            reportList = logLineList.FindAll(ll => );
         }
 		class UserReportLine : IReportLine {
 			//Я не помню, какие тут должны быть поля, даю наобум. Поправь есичо
-			private string ID;
-			private string IP;
-			private DateTime InDate;
-			private DateTime OutDate;
-			private string Company;
+			private string NN;
+            private string Name;
+            private string IP;
+			private string InDate;
+			private string OutDate;
+            private string QConnect;
 
-
-			//Не забудь сменить, ага?
-			public string ID_HEADER = "ID пользователя";
-			public string INDATE_HEADER = "Дата старта";
-			public string OUTDATE_HEADER = "Дата конца";
-			public string IP_HEADER = "IP тачки";
-			public string COMPANY_HEADER = "Компания";
+            //Не забудь сменить, ага?
+            public static string NN_HEADER = "Порядковый номер";
+            public static string NAME_HEADER = "Пользователь";
+            public static string IP_HEADER = "IP адрес";
+            public static string INDATE_HEADER = "Дата входа";
+			public static string OUTDATE_HEADER = "Дата выхода";
+			
 
 			private static UserReportLine _header;
 
 			public static UserReportLine GetHeader() {
 				if (_header == null) {
 					_header = new UserReportLine();
-					_header.ID = ID_HEADER;
-					_header.InDate = INDATE_HEADER;
+					_header.NN = NN_HEADER;
+                    _header.Name = NAME_HEADER;
+                    _header.InDate = INDATE_HEADER;
 					_header.OutDate = OUTDATE_HEADER;
 					_header.IP = IP_HEADER;
-					_header.Company = COMPANY_HEADER;
+					
 				}
 				return _header;
 			}
 
 			public static UserReportLine Obtain(LogLine line) {
 				UserReportLine toReturn = new UserReportLine ();
-				toReturn.ID = line.ID;
-				toReturn.InDate = line.InDate;
-				toReturn.OutDate = line.OutDate;
+                toReturn.NN = line.NN.ToString();
+				toReturn.InDate = line.InDate.ToString();
+				toReturn.OutDate = line.OutDate.ToString();
 				toReturn.IP = line.IP;
-				toReturn.Company = line.Company;
+				toReturn.Name = line.Name;
 				return toReturn;
 			}
 		}
@@ -94,7 +97,7 @@ namespace LogExplorer
             DateTime endTime = new DateTime(2017, 6, 21, 00, 00, 00);
             string IP = "192.168.13.1";
 
-            reportList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime && ll.IP.Equals(IP));
+           // reportList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime && ll.IP.Equals(IP));
         }
     }
 
