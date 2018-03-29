@@ -21,24 +21,13 @@ namespace LogExplorer
             LoadLogFile(Environment.CurrentDirectory + "\\preview.txt");
             logGrid.ItemsSource = logLineList;
 
-
             // fitter
             //ICollectionView view = CollectionViewSource.GetDefaultView(logLineList);
-
             //view.Filter = str => (str as LogLine).Name.ToLower().Contains(filter.Text.ToLower());
             //view.GroupDescriptions.Add(new PropertyGroupDescription("Name"));
-            
             //logGrid.ItemsSource = view;
 
-
-    
-            //WriteToXML<List<LogLine>>("Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)" + "\\Report.xml");
-
-
-
         }
-
-
 
         //private void filter_TextChanged(object sender, TextChangedEventArgs e)
         //{
@@ -47,11 +36,6 @@ namespace LogExplorer
         //        (logGrid.ItemsSource as ICollectionView).Refresh();
         //    }
         //}
-
-
-
-
-
 
         private void LoadLogFile(String path)
         {
@@ -78,17 +62,25 @@ namespace LogExplorer
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Report userReport = new UserReport(logLineList);
-            
-            userReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
-            
+            //Report userReport = new UserReport(new UserFactory());
+            //userReport.CreateReport(logLineList);
+            //userReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
+            //Report ipReport = new IPReport(new IPReportFactory());
+            //ipReport.CreateReport(logLineList);
+            //ipReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
-            //Report ipReport = new IPReport(logLineList);
-            // ipReport.WriteToXML(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+            //Report companyReport = new CompanyReport(new CompanyReportFactory());
+            //companyReport.CreateReport(logLineList);
+            //companyReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
+            //Report companyUserReport = new CompanyUserReport(new CompanyUserReportFactory());
+            //companyUserReport.CreateReport(logLineList);
+            //companyUserReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
-
+            Report errorReport = new ErrorReport(new ErrorReportFactory());
+            errorReport.CreateReport(logLineList);
+            errorReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
         }
     }
