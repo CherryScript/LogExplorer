@@ -62,25 +62,36 @@ namespace LogExplorer
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            //Report userReport = new UserReport(new UserFactory());
-            //userReport.CreateReport(logLineList);
-            //userReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+            try
+            {
+                Report userReport = new UserReport(new UserReportFactory());
+                userReport.CreateReport(logLineList);
+                userReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
-            //Report ipReport = new IPReport(new IPReportFactory());
-            //ipReport.CreateReport(logLineList);
-            //ipReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+                //Report ipReport = new IPReport(new IPReportFactory());
+                //ipReport.CreateReport(logLineList);
+                //ipReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
-            //Report companyReport = new CompanyReport(new CompanyReportFactory());
-            //companyReport.CreateReport(logLineList);
-            //companyReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+                //Report companyReport = new CompanyReport(new CompanyReportFactory());
+                //companyReport.CreateReport(logLineList);
+                //companyReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
-            //Report companyUserReport = new CompanyUserReport(new CompanyUserReportFactory());
-            //companyUserReport.CreateReport(logLineList);
-            //companyUserReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+                //Report companyUserReport = new CompanyUserReport(new CompanyUserReportFactory());
+                //companyUserReport.CreateReport(logLineList);
+                //companyUserReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
-            Report errorReport = new ErrorReport(new ErrorReportFactory());
-            errorReport.CreateReport(logLineList);
-            errorReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+                //Report errorReport = new ErrorReport(new ErrorReportFactory());
+                //errorReport.CreateReport(logLineList);
+                //errorReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+
+            }
+            catch (Exception ex)
+            {    
+                MessageBox.Show(ex.Message);
+            }
+         
+
+            
 
         }
     }

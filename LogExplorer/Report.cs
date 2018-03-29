@@ -13,10 +13,12 @@ namespace LogExplorer
         public List<ReportLine> ReportList;
         public string FileName;
         public abstract void CreateReport(List<LogLine> logLineList);
+        public abstract void FillRows();
+        public Excel.Worksheet sheet;
 
         internal void Write(string filePath)
         {
-            //WriteToXML<List<ReportLine>>(ReportList, filePath);
+            WriteToXML<List<ReportLine>>(ReportList, filePath);
             WriteToXLS<List<ReportLine>>(ReportList, filePath);
         }
 
@@ -38,41 +40,29 @@ namespace LogExplorer
 
             Excel.Application application;
             Excel.Workbook book;
-            Excel.Worksheet sheet;
+            
 
             application = new Microsoft.Office.Interop.Excel.Application();
             book = application.Workbooks.Add(missingValue);
             sheet = (Excel.Worksheet)book.Worksheets.get_Item(1);
-
-
-            int i = 1;
-            foreach (ReportLine line in ReportList)
+            try
             {
-                i++;
-             //   sheet.Cells[i, "A"] = ((typeof(T))line);
-
+                FillRows();
+                book.SaveAs(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xls");
             }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally {
+                book.Close(true, missingValue, missingValue);
+                application.Quit();
 
-                      
-            book.SaveAs(@"C:\excel_text.xls",
-                         Excel.XlFileFormat.xlExcel12,
-                         missingValue,
-                         missingValue,
-                         missingValue,
-                         missingValue,
-                         Excel.XlSaveAsAccessMode.xlNoChange,
-                         missingValue,
-                         missingValue,
-                         missingValue,
-                         missingValue,
-                         missingValue);
-                                                                             
-            book.Close(true, missingValue, missingValue);
-            application.Quit();
-   
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(book);
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(book);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
+            }  
+            
 
 
         }
@@ -97,6 +87,24 @@ namespace LogExplorer
             }
 
         }
+        public override void FillRows()
+        {
+            int i = 1;
+            foreach (ReportLine line in ReportList)
+            {
+                sheet.Cells[i, "A"] = ((UserReportLine)line).NN;
+                sheet.Cells[i, "B"] = ((UserReportLine)line).Name;
+                sheet.Cells[i, "C"] = ((UserReportLine)line).Company;
+                sheet.Cells[i, "D"] = ((UserReportLine)line).IP;
+                sheet.Cells[i, "E"] = ((UserReportLine)line).ID;
+                sheet.Cells[i, "F"] = ((UserReportLine)line).InDate;
+                sheet.Cells[i, "G"] = ((UserReportLine)line).OutDate;
+                sheet.Cells[i++, "H"] = ((UserReportLine)line).Error;
+            }
+
+
+        }
+
     }
     class IPReport : Report
     {
@@ -129,6 +137,12 @@ namespace LogExplorer
                 ((IPReportLine)line).QConnect = dict[((IPReportLine)line).IP];
             }
         }
+        public override void FillRows()
+        {
+
+
+
+        }
     }
     class CompanyReport : Report
     {
@@ -147,6 +161,12 @@ namespace LogExplorer
             {
                 ReportList.Add(factory.CreateLine(line));
             }
+        }
+        public override void FillRows()
+        {
+
+
+
         }
     }
     class CompanyUserReport : Report
@@ -191,6 +211,12 @@ namespace LogExplorer
             }
             // reportList.Add(factory.CreateLine(line));
         }
+        public override void FillRows()
+        {
+
+
+
+        }
     }
     class ErrorReport : Report
     {
@@ -210,6 +236,12 @@ namespace LogExplorer
             {
                 ReportList.Add(factory.CreateLine(line));
             }
+
+        }
+        public override void FillRows()
+        {
+
+
 
         }
     }
@@ -369,7 +401,7 @@ namespace LogExplorer
     {
         public override ReportLine CreateLine(LogLine ll)
         {
-            return new IPReportLine(ll);
+            return new UserReportLine(ll);
         }
     }
     class IPReportFactory : ReportFactory
