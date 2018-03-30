@@ -24,7 +24,12 @@
 
             </DataGrid.Columns>
         </DataGrid>
+        <Menu Height="25" VerticalAlignment="Top">
+            <MenuItem Header="Файл">
+                <MenuItem Header="Открыть лог" Click="miOpenLog_Click"></MenuItem>
+                <MenuItem Header="Создать отчет" Click="MenuItem_Click" ></MenuItem>
+            </MenuItem>
+        </Menu>
         <!--<TextBox x:Name="filter" HorizontalAlignment="Left" Height="23" Margin="32,17,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="132" TextChanged="filter_TextChanged"/>-->
-        <Button Content="Создать отчет" HorizontalAlignment="Left" Margin="450,10,0,0" VerticalAlignment="Top" Width="112" RenderTransformOrigin="2.453,0.409" Click="Button_Click"/>
     </Grid>
 </Window>

@@ -12,18 +12,23 @@ namespace LogExplorer
     {
         public List<ReportLine> ReportList;
         public string FileName;
-        public abstract void CreateReport(List<LogLine> logLineList);
-        public abstract void FillRows();
         public Excel.Worksheet sheet;
 
-        internal void Write(string filePath)
+
+        public abstract void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData);
+        public abstract void FillRows();
+      
+        internal void Write(string filePath,bool xml, bool xls)
         {
+            if(xml)
             WriteToXML<List<ReportLine>>(ReportList, filePath);
+            if(xls)
             WriteToXLS<List<ReportLine>>(ReportList, filePath);
         }
 
         internal void WriteToXML<T>(T rl, string filePath)
         {
+            string fullPath = filePath + "\\" + FileName+ ".xml";
             XmlDocument xmlDoc = new XmlDocument();
             XPathNavigator nav = xmlDoc.CreateNavigator();
             using (XmlWriter writer = nav.AppendChild())
@@ -31,12 +36,15 @@ namespace LogExplorer
                 XmlSerializer ser = new XmlSerializer(typeof(T), new XmlRootAttribute("TheRootElementName"));
                 ser.Serialize(writer, rl);
             }
-            File.WriteAllText(filePath, xmlDoc.InnerXml);
+            File.WriteAllText(fullPath, xmlDoc.InnerXml);
         }
 
         private void WriteToXLS<T>(T rl, string filePath)
         {
+
             System.Reflection.Missing missingValue = System.Reflection.Missing.Value;
+
+            string fullPath = Environment.CurrentDirectory + "\\" + FileName + ".xls";
 
             Excel.Application application;
             Excel.Workbook book;
@@ -48,7 +56,7 @@ namespace LogExplorer
             try
             {
                 FillRows();
-                book.SaveAs(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xls");
+                book.SaveAs(fullPath);
             }
             catch (Exception)
             {
@@ -62,9 +70,6 @@ namespace LogExplorer
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(book);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
             }  
-            
-
-
         }
     }
 
@@ -73,12 +78,14 @@ namespace LogExplorer
         private ReportFactory factory;
         public UserReport(ReportFactory factory) { this.factory = factory; }
 
-        public override void CreateReport(List<LogLine> logLineList)
+        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
         {
+            DateTime setTime = (DateTime)formData["InDate"];
+            FileName = "Отчет по пользователям за сутки_"+ setTime.ToShortDateString();
             ReportList = new List<ReportLine>();
-            DateTime setTime = new DateTime(2017, 7, 6, 00, 00, 00);
+            
 
-            List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > setTime.AddHours(-24) && ll.OutDate < setTime);
+            List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > setTime && ll.OutDate < setTime.AddHours(24));
             Dictionary<string, int> dict = new Dictionary<string, int>();
 
             foreach (LogLine line in findList)
@@ -114,11 +121,14 @@ namespace LogExplorer
         {
             this.factory = factory;
         }
-        public override void CreateReport(List<LogLine> logLineList)
+        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
         {
+            DateTime startTime = (DateTime)formData["InDate"];
+            DateTime endTime = (DateTime)formData["OutDate"];
+
+            FileName = "Отчет по количеству подключений с каждого IP адреса за период_"+ startTime.ToShortDateString()+"-"+ endTime.ToShortDateString();
             ReportList = new List<ReportLine>();
-            DateTime startTime = new DateTime(2017, 6, 18, 00, 00, 00);
-            DateTime endTime = new DateTime(2017, 6, 21, 00, 00, 00);
+           
 
             List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime);
             Dictionary<string, int> dict = new Dictionary<string, int>();
@@ -139,11 +149,20 @@ namespace LogExplorer
         }
         public override void FillRows()
         {
-
-
+            int i = 1;
+            foreach (ReportLine line in ReportList)
+            {
+                sheet.Cells[i, "A"] = ((IPReportLine)line).NN;
+                sheet.Cells[i, "B"] = ((IPReportLine)line).Name;
+                sheet.Cells[i, "D"] = ((IPReportLine)line).IP;
+                sheet.Cells[i, "E"] = ((IPReportLine)line).InDate;
+                sheet.Cells[i, "F"] = ((IPReportLine)line).OutDate;
+                sheet.Cells[i++, "G"] = ((IPReportLine)line).QConnect;
+            }
 
         }
     }
+
     class CompanyReport : Report
     {
         private ReportFactory factory;
@@ -152,10 +171,14 @@ namespace LogExplorer
         {
             this.factory = factory;
         }
-        public override void CreateReport(List<LogLine> logLineList)
+        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
         {
+
+            string company = (string)formData["Company"];
+            List<LogLine> findList = logLineList.FindAll(ll => ll.Company == company);
+            FileName = "Отчет по организации: " + company;
             ReportList = new List<ReportLine>();
-            List<LogLine> findList = logLineList.FindAll(ll => ll.Company == "РНПК");
+            
 
             foreach (LogLine line in findList)
             {
@@ -164,7 +187,14 @@ namespace LogExplorer
         }
         public override void FillRows()
         {
-
+            int i = 1;
+            foreach (ReportLine line in ReportList)
+            {
+                sheet.Cells[i, "A"] = ((CompanyReportLine)line).NN;
+                sheet.Cells[i, "B"] = ((CompanyReportLine)line).Name;
+                sheet.Cells[i, "C"] = ((CompanyReportLine)line).IP;
+                sheet.Cells[i, "C"] = ((CompanyReportLine)line).SummDate;
+            }
 
 
         }
@@ -177,12 +207,15 @@ namespace LogExplorer
         {
             this.factory = factory;
         }
-        public override void CreateReport(List<LogLine> logLineList)
+        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
         {
             ReportList = new List<ReportLine>();
 
-            DateTime startTime = new DateTime(2017, 6, 18, 00, 00, 00);
-            DateTime endTime = new DateTime(2017, 6, 21, 00, 00, 00);
+            DateTime startTime = (DateTime)formData["InDate"]; ;
+            DateTime endTime = (DateTime)formData["OutDate"]; ;
+
+            FileName = "Отчет по количеству пользователей от организаций за период " + startTime.ToShortDateString() + "-" + endTime.ToShortDateString();
+
 
             List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime);
 
@@ -207,13 +240,19 @@ namespace LogExplorer
                 ((CompanyUserReportLine)rl).Company = (string)enumerator.Key;
                 ((CompanyUserReportLine)rl).QUser = (int)enumerator.Value;
                 ReportList.Add(rl);
-
             }
-            // reportList.Add(factory.CreateLine(line));
         }
         public override void FillRows()
         {
+            int i = 1;
+            foreach (ReportLine line in ReportList)
+            {
+                sheet.Cells[i, "A"] = ((CompanyUserReportLine)line).NN;
+                sheet.Cells[i, "B"] = ((CompanyUserReportLine)line).Company;
+                sheet.Cells[i, "C"] = ((CompanyUserReportLine)line).QUser;
 
+
+            }
 
 
         }
@@ -223,11 +262,14 @@ namespace LogExplorer
         private ReportFactory factory;
         public ErrorReport(ReportFactory factory) { this.factory = factory; }
 
-        public override void CreateReport(List<LogLine> logLineList)
+        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
         {
             ReportList = new List<ReportLine>();
-            DateTime startTime = new DateTime(2017, 6, 18, 00, 00, 00);
-            DateTime endTime = new DateTime(2017, 6, 21, 00, 00, 00);
+            DateTime startTime = (DateTime)formData["InDate"];
+            DateTime endTime = (DateTime)formData["OutDate"];
+
+            FileName = "Отчет по ошибкам за период " + startTime.ToShortDateString() + "-" + endTime.ToShortDateString();
+
 
             List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime && ll.Error.Equals("1"));
             Dictionary<string, int> dict = new Dictionary<string, int>();
@@ -240,9 +282,17 @@ namespace LogExplorer
         }
         public override void FillRows()
         {
-
-
-
+            int i = 1;
+            foreach (ReportLine line in ReportList)
+            {
+                sheet.Cells[i, "A"] = ((ErrorReportLine)line).NN;
+                sheet.Cells[i, "B"] = ((ErrorReportLine)line).Name;
+                sheet.Cells[i, "C"] = ((ErrorReportLine)line).Company;
+                sheet.Cells[i, "D"] = ((ErrorReportLine)line).IP;
+                sheet.Cells[i, "E"] = ((ErrorReportLine)line).ID;
+                sheet.Cells[i, "F"] = ((ErrorReportLine)line).InDate;
+                sheet.Cells[i, "G"] = ((ErrorReportLine)line).OutDate;
+            }
         }
     }
 

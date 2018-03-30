@@ -1,0 +1,35 @@
+﻿<Window x:Class="LogExplorer.ReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LogExplorer"
+        mc:Ignorable="d"
+        Title="Создать отчет" Height="338.475" Width="450.113">
+    <Grid Margin="0,0,2,0">
+        <TextBox x:Name="tbReportFolder" HorizontalAlignment="Left" Height="23" Margin="105,26,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="235"/>
+        <Button Content="Обзор" HorizontalAlignment="Left" Margin="354,26,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
+        <Button Content="Создать отчеты" HorizontalAlignment="Left" Margin="10,261,0,0" VerticalAlignment="Top" Width="112" Click="Button_Click"/>
+        <DatePicker x:Name="dpOutDate" HorizontalAlignment="Left" Margin="240,111,0,0" VerticalAlignment="Top" Width="100"/>
+        <DatePicker x:Name="dpInDate" HorizontalAlignment="Left" Margin="105,111,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.686,0.551" Width="101"/>
+        <GroupBox Header="Отчеты" HorizontalAlignment="Left" Height="111" Margin="10,145,0,0" VerticalAlignment="Top" Width="419">
+            <StackPanel>
+                <CheckBox x:Name="cbUserReportBox" Content="Отчет по пользователям за сутки"/>
+                <CheckBox x:Name="cbIPReportBox" Content="Отчет по количеству подключений с каждого IP адреса за период"/>
+                <CheckBox x:Name="cbCompanyReportBox" Content="Отчет по организациям (за весь период)"/>
+                <CheckBox x:Name="cbCompanyUserReportBox" Content="Отчет по количеству пользователей от организаций (за период) "/>
+                <CheckBox x:Name="cbErrorReportBox" Content="Отчет по ошибкам за период"/>
+            </StackPanel>
+        </GroupBox>
+        <Label Content="Период с" HorizontalAlignment="Left" Margin="10,109,0,0" VerticalAlignment="Top" RenderTransformOrigin="-3.09,0.797" Width="61"/>
+        <Label Content="по" HorizontalAlignment="Left" Margin="211,111,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.512,0.058" Width="24"/>
+        <Label Content="Сохранить как.." HorizontalAlignment="Left" Margin="10,26,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.103,-0.155" Width="95"/>
+        <Button Content="Отмена" HorizontalAlignment="Left" Margin="354,261,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+        <TextBox x:Name="tbCompany" HorizontalAlignment="Left" Height="23" Margin="105,80,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="101"/>
+        <Label Content="Организация" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Width="82"/>
+        <CheckBox x:Name="cbXML" Content="XML" HorizontalAlignment="Left" Margin="105,54,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.574,0.312" Width="41"/>
+        <CheckBox x:Name="cbXLS" Content="XLS" HorizontalAlignment="Left" Margin="151,54,0,0" VerticalAlignment="Top" Width="36"/>
+        <ProgressBar x:Name="pb" HorizontalAlignment="Left" Height="10" Margin="10,288,0,0" IsIndeterminate="True" VerticalAlignment="Top" Width="419"/>
+
+    </Grid>
+</Window>

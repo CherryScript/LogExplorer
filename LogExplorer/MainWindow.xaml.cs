@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace LogExplorer
 {
@@ -37,18 +36,30 @@ namespace LogExplorer
         //    }
         //}
 
+
+
         private void LoadLogFile(String path)
         {
             logLineList = new List<LogLine> { };
+            List<LogLine> errorLogLineList = new List<LogLine> { };
             System.IO.StreamReader sr = new System.IO.StreamReader(path);
+            StreamWriter sw = new StreamWriter(Environment.CurrentDirectory + "\\last_error.txt");
             try
             {
                 string line = null;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    logLineList.Add(new LogLine(line));
+                    LogLine ll = new LogLine(line);
+                    if (ll.NotValid == null)
+                        logLineList.Add(ll);
+                    else
+                    {
+                        sw.WriteLine(line + ";" + ll.NotValid);
+                    }
                 }
             }
+
+
             catch (Exception)
             {
                 throw;
@@ -56,43 +67,40 @@ namespace LogExplorer
             finally
             {
                 sr.Close();
+                sw.Close();
             }
-    
+
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ReportWindow reportWindow = new ReportWindow(logLineList);
+            reportWindow.Show();
+
+        }
+
+        private void miOpenLog_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                Report userReport = new UserReport(new UserReportFactory());
-                userReport.CreateReport(logLineList);
-                userReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
+                string filePath = "";
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.InitialDirectory = Environment.CurrentDirectory;
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    filePath = openFileDialog.FileName;
+                    LoadLogFile(filePath);
+                    logGrid.ItemsSource = logLineList;
+                }
 
-                //Report ipReport = new IPReport(new IPReportFactory());
-                //ipReport.CreateReport(logLineList);
-                //ipReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
-
-                //Report companyReport = new CompanyReport(new CompanyReportFactory());
-                //companyReport.CreateReport(logLineList);
-                //companyReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
-
-                //Report companyUserReport = new CompanyUserReport(new CompanyUserReportFactory());
-                //companyUserReport.CreateReport(logLineList);
-                //companyUserReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
-
-                //Report errorReport = new ErrorReport(new ErrorReportFactory());
-                //errorReport.CreateReport(logLineList);
-                //errorReport.Write(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Report.xml");
 
             }
             catch (Exception ex)
-            {    
+            {
                 MessageBox.Show(ex.Message);
             }
-         
-
-            
-
         }
     }
 }
