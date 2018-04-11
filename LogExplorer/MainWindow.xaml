@@ -13,9 +13,25 @@
         </Grid.RowDefinitions>
         <DataGrid x:Name="logGrid" Margin="20,40,20,20" AutoGenerateColumns="False">
             <DataGrid.Columns>
+
                 <DataGridTextColumn Width="30" Binding="{Binding NN}" ClipboardContentBinding="{x:Null}" Header="№"/>
                 <DataGridTextColumn Width="4*" Binding="{Binding Name}" ClipboardContentBinding="{x:Null}" Header="Пользователь"/>
-                <DataGridTextColumn Width="4*" Binding="{Binding Company}" ClipboardContentBinding="{x:Null}" Header="Организация"/>
+
+                <DataGridTextColumn Binding="{Binding Company}" >
+                    <DataGridTextColumn.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Организация" />
+                            <Button Name="btnCompanyFilter" Margin="3,0,0,0" Click="btnCompanyFilter_Click">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Image Source="/Images/filter.png" Width="10" Height="10" />
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
                 <DataGridTextColumn Width="4*" Binding="{Binding IP}" ClipboardContentBinding="{x:Null}" Header="IP адрес"/>
                 <DataGridTextColumn Width="4*" Binding="{Binding ID}" ClipboardContentBinding="{x:Null}" Header="Уникальный идентификатор сессии"/>
                 <DataGridTextColumn Width="4*" Binding="{Binding InDate}" ClipboardContentBinding="{x:Null}" Header="Дата и время входа в систему"/>
@@ -30,6 +46,42 @@
                 <MenuItem Header="Создать отчет" Click="MenuItem_Click" ></MenuItem>
             </MenuItem>
         </Menu>
-        <!--<TextBox x:Name="filter" HorizontalAlignment="Left" Height="23" Margin="32,17,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="132" TextChanged="filter_TextChanged"/>-->
+  
+        <Popup Name="popCompany" Placement="Bottom" PlacementTarget="{Binding ElementName=btnCompanyFilter}" StaysOpen="False" Width="200">
+            <Border Background="White" BorderBrush="Gray" BorderThickness="1,1,1,1">
+                <StackPanel Margin="5,5,5,15">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <Button Margin="0,0,0,0" Name="btnSelectAll" Click="btnSelectAll_Click">
+                            <Button.Template>
+                                <ControlTemplate>
+                                    <TextBlock Text="Выделить все" Foreground="Blue" Cursor="Hand" />
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Margin="10,0,0,0" Name="btnUnselectAll" Click="btnUnselectAll_Click">
+                            <Button.Template>
+                                <ControlTemplate>
+                                    <TextBlock Text="Снять выделение" Foreground="Blue" Cursor="Hand" />
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+
+
+                    <ListBox x:Name="lstCompany" BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Item}" Checked="ApplyFilters" Unchecked="ApplyFilters" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+
+
+
     </Grid>
 </Window>
