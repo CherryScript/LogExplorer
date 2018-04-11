@@ -1,13 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace LogExplorer
 {
-    public class LogLine
+    public class LogLine : INotifyPropertyChanged
     {
         public int NN { get; set; }
         public string Name { get; set; }
-        public string Company { get; set; }
+
+        private string company;
+        public string Company
+        {
+            get { return company; }
+            set
+            {
+                company = value;
+                if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Company"));
+            }
+        }
+
+
+
         public string IP { get; set; }
         public string ID { get; set; }
         public DateTime InDate { get; set; }
@@ -15,15 +30,43 @@ namespace LogExplorer
         public string Error { get; set; }
         public string NotValid { get; set; }
 
+
+        public string StringColumn_1 { get; set; }
+        public string StringColumn_2 { get; set; }
+        public string StringColumn_3 { get; set; }
+        public DateTime DateColumn_4 { get; set; }
+        public DateTime DateColumn_5 { get; set; }
+
+
+
         public LogLine() { }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+
+        public LogLine(Dictionary<string,string> dict)
+        {
+            StringColumn_1 = dict["StringColumn_1"];
+            StringColumn_2 = dict["StringColumn_2"];
+            StringColumn_3 = dict["StringColumn_3"];
+
+
+
+        }
 
         private string LogString;
         public LogLine(String ls)
         {
             LogString = ls;
 
+
+
+
             string[] LogLineArray = LogString.Split(';');
+
+            // prop string {time: "", "process": "task", ....... }
+            // for(prop in propStringArray) if()string new StringCell() if(date) new DateCell()
+
 
             NN = int.Parse(LogLineArray[0]);
             Name = LogLineArray[1];

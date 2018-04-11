@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.XPath;
+using System.Linq;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace LogExplorer
@@ -15,20 +17,20 @@ namespace LogExplorer
         public Excel.Worksheet sheet;
 
 
-        public abstract void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData);
+        public abstract void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData);
         public abstract void FillRows();
-      
-        internal void Write(string filePath,bool xml, bool xls)
+
+        internal void Write(string filePath, bool xml, bool xls)
         {
-            if(xml)
-            WriteToXML<List<ReportLine>>(ReportList, filePath);
-            if(xls)
-            WriteToXLS<List<ReportLine>>(ReportList, filePath);
+            if (xml)
+                WriteToXML<List<ReportLine>>(ReportList, filePath);
+            if (xls)
+                WriteToXLS<List<ReportLine>>(ReportList, filePath);
         }
 
         internal void WriteToXML<T>(T rl, string filePath)
         {
-            string fullPath = filePath + "\\" + FileName+ ".xml";
+            string fullPath = filePath + "\\" + FileName + ".xml";
             XmlDocument xmlDoc = new XmlDocument();
             XPathNavigator nav = xmlDoc.CreateNavigator();
             using (XmlWriter writer = nav.AppendChild())
@@ -48,7 +50,7 @@ namespace LogExplorer
 
             Excel.Application application;
             Excel.Workbook book;
-            
+
 
             application = new Microsoft.Office.Interop.Excel.Application();
             book = application.Workbooks.Add(missingValue);
@@ -62,14 +64,15 @@ namespace LogExplorer
             {
                 throw;
             }
-            finally {
+            finally
+            {
                 book.Close(true, missingValue, missingValue);
                 application.Quit();
 
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(book);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
-            }  
+            }
         }
     }
 
@@ -78,15 +81,14 @@ namespace LogExplorer
         private ReportFactory factory;
         public UserReport(ReportFactory factory) { this.factory = factory; }
 
-        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
+        public override void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData)
         {
             DateTime setTime = (DateTime)formData["InDate"];
-            FileName = "Отчет по пользователям за сутки_"+ setTime.ToShortDateString();
+            FileName = "Отчет по пользователям за сутки_" + setTime.ToShortDateString();
             ReportList = new List<ReportLine>();
-            
 
-            List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > setTime && ll.OutDate < setTime.AddHours(24));
-            Dictionary<string, int> dict = new Dictionary<string, int>();
+
+            List<LogLine> findList = logLineList.Where(ll => ll.OutDate > setTime && ll.OutDate < setTime.AddHours(24)).ToList();
 
             foreach (LogLine line in findList)
             {
@@ -121,16 +123,16 @@ namespace LogExplorer
         {
             this.factory = factory;
         }
-        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
+        public override void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData)
         {
             DateTime startTime = (DateTime)formData["InDate"];
             DateTime endTime = (DateTime)formData["OutDate"];
 
-            FileName = "Отчет по количеству подключений с каждого IP адреса за период_"+ startTime.ToShortDateString()+"-"+ endTime.ToShortDateString();
+            FileName = "Отчет по количеству подключений с каждого IP адреса за период_" + startTime.ToShortDateString() + "-" + endTime.ToShortDateString();
             ReportList = new List<ReportLine>();
-           
 
-            List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime);
+
+            List<LogLine> findList = logLineList.Where(ll => ll.OutDate > startTime && ll.OutDate < endTime).ToList();
             Dictionary<string, int> dict = new Dictionary<string, int>();
             foreach (LogLine line in findList)
             {
@@ -171,14 +173,14 @@ namespace LogExplorer
         {
             this.factory = factory;
         }
-        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
+        public override void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData)
         {
 
             string company = (string)formData["Company"];
-            List<LogLine> findList = logLineList.FindAll(ll => ll.Company == company);
+            List<LogLine> findList = logLineList.Where(ll => ll.Company == company).ToList();
             FileName = "Отчет по организации: " + company;
             ReportList = new List<ReportLine>();
-            
+
 
             foreach (LogLine line in findList)
             {
@@ -207,7 +209,7 @@ namespace LogExplorer
         {
             this.factory = factory;
         }
-        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
+        public override void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData)
         {
             ReportList = new List<ReportLine>();
 
@@ -217,7 +219,7 @@ namespace LogExplorer
             FileName = "Отчет по количеству пользователей от организаций за период " + startTime.ToShortDateString() + "-" + endTime.ToShortDateString();
 
 
-            List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime);
+            List<LogLine> findList = logLineList.Where(ll => ll.OutDate > startTime && ll.OutDate < endTime).ToList();
 
             Dictionary<string, int> dict = new Dictionary<string, int>();
             foreach (LogLine line in findList)
@@ -262,7 +264,7 @@ namespace LogExplorer
         private ReportFactory factory;
         public ErrorReport(ReportFactory factory) { this.factory = factory; }
 
-        public override void CreateReport(List<LogLine> logLineList, Dictionary<string, object> formData)
+        public override void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData)
         {
             ReportList = new List<ReportLine>();
             DateTime startTime = (DateTime)formData["InDate"];
@@ -271,7 +273,7 @@ namespace LogExplorer
             FileName = "Отчет по ошибкам за период " + startTime.ToShortDateString() + "-" + endTime.ToShortDateString();
 
 
-            List<LogLine> findList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime && ll.Error.Equals("1"));
+            List<LogLine> findList = logLineList.Where(ll => ll.OutDate > startTime && ll.OutDate < endTime && ll.Error.Equals("1")).ToList();
             Dictionary<string, int> dict = new Dictionary<string, int>();
 
             foreach (LogLine line in findList)
@@ -483,132 +485,4 @@ namespace LogExplorer
         }
     }
 
-
-
-
-
-
-
-
-
-    //  abstract class Report
-    //  {
-    //      public List<LogLine> logLineList;
-    //public List<IReportLine> reportList;
-
-    //      internal void Write(string filePath)
-    //      {
-    //          WriteXML<List<IReportLine>>(reportList, filePath);
-    //      }
-
-
-    //      internal void WriteXML<T>(T rl, string filePath)
-    //      {
-    //          XmlDocument xmlDoc = new XmlDocument();
-    //          XPathNavigator nav = xmlDoc.CreateNavigator();
-    //          using (XmlWriter writer = nav.AppendChild())
-    //          {
-    //              XmlSerializer ser = new XmlSerializer(typeof(IReportLine), new XmlRootAttribute("TheRootElementName"));
-    //              ser.Serialize(writer, rl);
-    //          }
-    //          File.WriteAllText(filePath, xmlDoc.InnerXml);
-    //      }
-
-    //  }
-    //  public interface IReportLine {}
-
-    //  class UserReport : Report
-    //  {
-    //      public UserReport(List<LogLine> logLineList)
-    //      {
-    //	DateTime setTime = new DateTime(2017, 7, 6, 00, 00, 00);
-    //	this.logLineList = logLineList;
-    //	DateTime startTime = setTime.AddHours (-24);
-
-    //	reportList = new List<IReportLine> ();
-    //	reportList.Add (UserReportLine.GetHeader());
-    //	foreach (LogLine line in logLineList) {
-    //		if (line.OutDate <= startTime || line.OutDate >= setTime) { continue; }
-    //		reportList.Add(UserReportLine.Obtain(line));
-    //	}
-    //	//            reportList = logLineList.FindAll(ll => );
-    //      }
-    //class UserReportLine : IReportLine {
-    //	private string NN;
-    //          private string Name;
-    //          private string IP;
-    //	private string InDate;
-    //	private string OutDate;
-    //          private string QConnect;
-
-    //          public static string NN_HEADER = "Порядковый номер";
-    //          public static string NAME_HEADER = "Пользователь";
-    //          public static string IP_HEADER = "IP адрес";
-    //          public static string INDATE_HEADER = "Дата входа";
-    //	public static string OUTDATE_HEADER = "Дата выхода";
-
-
-    //	private static UserReportLine _header;
-
-    //	public static UserReportLine GetHeader() {
-    //		if (_header == null) {
-    //			_header = new UserReportLine();
-    //			_header.NN = NN_HEADER;
-    //                  _header.Name = NAME_HEADER;
-    //                  _header.InDate = INDATE_HEADER;
-    //			_header.OutDate = OUTDATE_HEADER;
-    //			_header.IP = IP_HEADER;
-
-    //		}
-    //		return _header;
-    //	}
-
-    //	public static UserReportLine Obtain(LogLine line) {
-    //		UserReportLine toReturn = new UserReportLine ();
-    //              toReturn.NN = line.NN.ToString();
-    //		toReturn.InDate = line.InDate.ToString();
-    //		toReturn.OutDate = line.OutDate.ToString();
-    //		toReturn.IP = line.IP;
-    //		toReturn.Name = line.Name;
-    //		return toReturn;
-    //	}
-    //}
-    //  }
-
-    //  class IPReport : Report
-    //  {
-    //      public IPReport(List<LogLine> logLineList)
-    //      {
-    //          this.logLineList = logLineList;
-    //          DateTime startTime = new DateTime(2017, 6, 18, 00, 00, 00);
-    //          DateTime endTime = new DateTime(2017, 6, 21, 00, 00, 00);
-    //          string IP = "192.168.13.1";
-
-    //         // reportList = logLineList.FindAll(ll => ll.OutDate > startTime && ll.OutDate < endTime && ll.IP.Equals(IP));
-    //      }
-    //  }
-
-    //  class OrgReport : Report
-    //  {
-    //      public OrgReport(List<LogLine> logLineList)
-    //      {
-    //          this.logLineList = logLineList;
-    //      }
-    //  }
-
-    //  class OrgUserReport : Report
-    //  {
-    //      public OrgUserReport(List<LogLine> logLineList)
-    //      {
-    //          this.logLineList = logLineList;
-    //      }
-    //  }
-
-    //  class ErrorReport : Report
-    //  {
-    //      public ErrorReport(List<LogLine> logLineList)
-    //      {
-    //          this.logLineList = logLineList;
-    //      }
-    //  }
 }

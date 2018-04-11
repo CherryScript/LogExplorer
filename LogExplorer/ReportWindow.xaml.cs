@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Windows;
 
 namespace LogExplorer
@@ -11,12 +12,12 @@ namespace LogExplorer
     public partial class ReportWindow : Window
     {
         private string ReportFolder;
-        private List<LogLine> LogLineList;
+        private ObservableCollection<LogLine> LogLineCollection;
 
-        public ReportWindow(List<LogLine>lll)
+        public ReportWindow(ObservableCollection<LogLine>llc)
         {
             ReportFolder = Environment.CurrentDirectory;
-            this.LogLineList = lll;
+            this.LogLineCollection = llc;
             InitializeComponent();
 
             tbReportFolder.Text = ReportFolder;
@@ -40,31 +41,31 @@ namespace LogExplorer
                 if (cbUserReportBox.IsChecked == true)
                 {
                     Report userReport = new UserReport(new UserReportFactory());
-                    userReport.CreateReport(LogLineList, dict);
+                    userReport.CreateReport(LogLineCollection, dict);
                     userReport.Write(ReportFolder, xml, xls);
                 }
                 if (cbIPReportBox.IsChecked == true)
                 {
                     Report ipreport = new IPReport(new IPReportFactory());
-                    ipreport.CreateReport(LogLineList, dict);
+                    ipreport.CreateReport(LogLineCollection, dict);
                     ipreport.Write(ReportFolder, xml, xls);
                 }
                 if (cbCompanyReportBox.IsChecked == true)
                 {
                     Report companyReport = new CompanyReport(new CompanyReportFactory());
-                    companyReport.CreateReport(LogLineList, dict);
+                    companyReport.CreateReport(LogLineCollection, dict);
                     companyReport.Write(ReportFolder, xml, xls);
                 }
                 if (cbCompanyUserReportBox.IsChecked == true)
                 {
                     Report companyUserReport = new CompanyUserReport(new CompanyUserReportFactory());
-                    companyUserReport.CreateReport(LogLineList, dict);
+                    companyUserReport.CreateReport(LogLineCollection, dict);
                     companyUserReport.Write(ReportFolder, xml, xls);
                 }
                 if (cbErrorReportBox.IsChecked == true)
                 {
                     Report errorreport = new ErrorReport(new ErrorReportFactory());
-                    errorreport.CreateReport(LogLineList, dict);
+                    errorreport.CreateReport(LogLineCollection, dict);
                     errorreport.Write(ReportFolder, xml, xls);
                 }
                 MessageBox.Show("Отчеты сохранены в " + ReportFolder);

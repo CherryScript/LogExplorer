@@ -29,7 +29,7 @@
         <Label Content="Организация" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Width="82"/>
         <CheckBox x:Name="cbXML" Content="XML" HorizontalAlignment="Left" Margin="105,54,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.574,0.312" Width="41"/>
         <CheckBox x:Name="cbXLS" Content="XLS" HorizontalAlignment="Left" Margin="151,54,0,0" VerticalAlignment="Top" Width="36"/>
-        <ProgressBar x:Name="pb" HorizontalAlignment="Left" Height="10" Margin="10,288,0,0" IsIndeterminate="True" VerticalAlignment="Top" Width="419"/>
+        <ProgressBar x:Name="pb" HorizontalAlignment="Left" Height="10" Margin="10,288,0,0" IsIndeterminate="True" VerticalAlignment="Top" Width="419" Visibility="Hidden"/>
 
     </Grid>
 </Window>
