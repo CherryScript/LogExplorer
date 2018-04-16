@@ -6,86 +6,150 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.XPath;
 using System.Linq;
-using Excel = Microsoft.Office.Interop.Excel;
+
+using ClosedXML.Excel;
+using System.Data;
+using System.Reflection;
 
 namespace LogExplorer
 {
-    public abstract class Report
+
+    public interface IReport
+    {
+    }
+
+    public abstract class Report : IReport
     {
         public List<ReportLine> ReportList;
         public string FileName;
-        public Excel.Worksheet sheet;
 
 
         public abstract void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData);
         public abstract void FillRows();
-      
-        internal void Write(string filePath,bool xml, bool xls)
+
+        internal void Write(string filePath, bool xml, bool xls)
         {
-            if(xml)
-            WriteToXML<List<ReportLine>>(ReportList, filePath);
-            if(xls)
-            WriteToXLS<List<ReportLine>>(ReportList, filePath);
+            if (xml)
+                WriteToXML<List<ReportLine>>(ReportList, filePath);
+            if (xls)
+                WriteToXLS<ReportLine>(ReportList, filePath);
         }
 
-        internal void WriteToXML<T>(T rl, string filePath)
+
+        internal void WriteToXML<T>(T reportList, string filePath)
         {
-            string fullPath = filePath + "\\" + FileName+ ".xml";
+            string fullPath = filePath + "\\" + FileName + ".xml";
             XmlDocument xmlDoc = new XmlDocument();
             XPathNavigator nav = xmlDoc.CreateNavigator();
             using (XmlWriter writer = nav.AppendChild())
             {
                 XmlSerializer ser = new XmlSerializer(typeof(T), new XmlRootAttribute("TheRootElementName"));
-                ser.Serialize(writer, rl);
+                ser.Serialize(writer, reportList);
             }
             File.WriteAllText(fullPath, xmlDoc.InnerXml);
         }
 
-        private void WriteToXLS<T>(T rl, string filePath)
+
+        // Альтернативный способ используя COM объекты. Использовался в прошлой версии тестового.
+        // Исключен из-за возможных проблем доступа к excel файлу, и обязательного условия наличия установленного MS Office 
+        // Предполагаю что ошибки в этом методе были
+        //  using Excel = Microsoft.Office.Interop.Excel;
+        //          public Excel.Worksheet sheet;
+        //private void WriteToXLS<T>(string filePath)
+        //{
+
+        //    System.Reflection.Missing missingValue = System.Reflection.Missing.Value;
+
+        //    string fullPath = Environment.CurrentDirectory + "\\" + FileName + ".xls";
+
+        //    Excel.Application application;
+        //    Excel.Workbook book;
+
+
+        //    application = new Microsoft.Office.Interop.Excel.Application();
+        //    book = application.Workbooks.Add(missingValue);
+        //    sheet = (Excel.Worksheet)book.Worksheets.get_Item(1);
+        //    try
+        //    {
+        //        FillRows();
+        //        book.SaveAs(fullPath);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw;
+        //    }
+        //    finally {
+        //        book.Close(true, missingValue, missingValue);
+        //        application.Quit();
+
+        //        System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
+        //        System.Runtime.InteropServices.Marshal.ReleaseComObject(book);
+        //        System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
+        //    }  
+        //}
+
+
+        private void WriteToXLS<T>(List<T> reportLine, string filePath)
         {
+            string fullPath = Environment.CurrentDirectory + "\\" + FileName + ".xlsx";
 
-            System.Reflection.Missing missingValue = System.Reflection.Missing.Value;
+            DataTable excelDT = new DataTable();
 
-            string fullPath = Environment.CurrentDirectory + "\\" + FileName + ".xls";
+            Type type = this.GetType();
 
-            Excel.Application application;
-            Excel.Workbook book;
-            
+            PropertyInfo[] Props = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            application = new Microsoft.Office.Interop.Excel.Application();
-            book = application.Workbooks.Add(missingValue);
-            sheet = (Excel.Worksheet)book.Worksheets.get_Item(1);
-            try
+            Console.WriteLine("The number of public properties: {0}.\n",
+                      Props.Length);
+
+            excelDT = ToDataTable <ReportLine> (ReportList);
+
+            using (XLWorkbook wb = new XLWorkbook())
             {
-                FillRows();
-                book.SaveAs(fullPath);
+                wb.Worksheets.Add(excelDT, "Отчет");
+                wb.SaveAs(fullPath);
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally {
-                book.Close(true, missingValue, missingValue);
-                application.Quit();
 
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(book);
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
-            }  
+        }
+
+        public DataTable ToDataTable<T>(List<T> items)
+        {
+            DataTable dataTable = new DataTable(this.GetType().Name);
+            PropertyInfo[] Props = this.GetType().GetProperties();
+
+  
+            foreach (PropertyInfo prop in Props)
+            {
+                dataTable.Columns.Add(prop.Name);
+            }
+            foreach (T item in items)
+            {
+                var values = new object[Props.Length];
+                for (int i = 0; i < Props.Length; i++)
+                {
+                    values[i] = Props[i].GetValue(item, null);
+                }
+                dataTable.Rows.Add(values);
+            }
+            return dataTable;
         }
     }
+
+
+
 
     class UserReport : Report
     {
         private ReportFactory factory;
         public UserReport(ReportFactory factory) { this.factory = factory; }
 
+        
         public override void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData)
         {
             DateTime setTime = (DateTime)formData["InDate"];
-            FileName = "Отчет по пользователям за сутки_"+ setTime.ToShortDateString();
+            FileName = "Отчет по пользователям за сутки_" + setTime.ToShortDateString();
             ReportList = new List<ReportLine>();
-            
+
 
             List<LogLine> findList = logLineList.Where(ll => ll.OutDate > setTime && ll.OutDate < setTime.AddHours(24)).ToList();
             Dictionary<string, int> dict = new Dictionary<string, int>();
@@ -96,23 +160,25 @@ namespace LogExplorer
             }
 
         }
+
         public override void FillRows()
         {
             int i = 1;
             foreach (ReportLine line in ReportList)
             {
-                sheet.Cells[i, "A"] = ((UserReportLine)line).NN;
-                sheet.Cells[i, "B"] = ((UserReportLine)line).Name;
-                sheet.Cells[i, "C"] = ((UserReportLine)line).Company;
-                sheet.Cells[i, "D"] = ((UserReportLine)line).IP;
-                sheet.Cells[i, "E"] = ((UserReportLine)line).ID;
-                sheet.Cells[i, "F"] = ((UserReportLine)line).InDate;
-                sheet.Cells[i, "G"] = ((UserReportLine)line).OutDate;
-                sheet.Cells[i++, "H"] = ((UserReportLine)line).Error;
+                //sheet.Cells[i, "A"] = ((UserReportLine)line).NN;
+                //sheet.Cells[i, "B"] = ((UserReportLine)line).Name;
+                //sheet.Cells[i, "C"] = ((UserReportLine)line).Company;
+                //sheet.Cells[i, "D"] = ((UserReportLine)line).IP;
+                //sheet.Cells[i, "E"] = ((UserReportLine)line).ID;
+                //sheet.Cells[i, "F"] = ((UserReportLine)line).InDate;
+                //sheet.Cells[i, "G"] = ((UserReportLine)line).OutDate;
+                //sheet.Cells[i++, "H"] = ((UserReportLine)line).Error;
             }
 
 
         }
+
 
     }
     class IPReport : Report
@@ -128,9 +194,9 @@ namespace LogExplorer
             DateTime startTime = (DateTime)formData["InDate"];
             DateTime endTime = (DateTime)formData["OutDate"];
 
-            FileName = "Отчет по количеству подключений с каждого IP адреса за период_"+ startTime.ToShortDateString()+"-"+ endTime.ToShortDateString();
+            FileName = "Отчет по количеству подключений с каждого IP адреса за период_" + startTime.ToShortDateString() + "-" + endTime.ToShortDateString();
             ReportList = new List<ReportLine>();
-           
+
 
             List<LogLine> findList = logLineList.Where(ll => ll.OutDate > startTime && ll.OutDate < endTime).ToList();
             Dictionary<string, int> dict = new Dictionary<string, int>();
@@ -154,17 +220,17 @@ namespace LogExplorer
             int i = 1;
             foreach (ReportLine line in ReportList)
             {
-                sheet.Cells[i, "A"] = ((IPReportLine)line).NN;
-                sheet.Cells[i, "B"] = ((IPReportLine)line).Name;
-                sheet.Cells[i, "D"] = ((IPReportLine)line).IP;
-                sheet.Cells[i, "E"] = ((IPReportLine)line).InDate;
-                sheet.Cells[i, "F"] = ((IPReportLine)line).OutDate;
-                sheet.Cells[i++, "G"] = ((IPReportLine)line).QConnect;
+                //sheet.Cells[i, "A"] = ((IPReportLine)line).NN;
+                //sheet.Cells[i, "B"] = ((IPReportLine)line).Name;
+                //sheet.Cells[i, "D"] = ((IPReportLine)line).IP;
+                //sheet.Cells[i, "E"] = ((IPReportLine)line).InDate;
+                //sheet.Cells[i, "F"] = ((IPReportLine)line).OutDate;
+                //sheet.Cells[i++, "G"] = ((IPReportLine)line).QConnect;
             }
 
         }
-    }
 
+    }
     class CompanyReport : Report
     {
         private ReportFactory factory;
@@ -180,7 +246,7 @@ namespace LogExplorer
             List<LogLine> findList = logLineList.Where(ll => ll.Company == company).ToList();
             FileName = "Отчет по организации: " + company;
             ReportList = new List<ReportLine>();
-            
+
 
             foreach (LogLine line in findList)
             {
@@ -192,14 +258,15 @@ namespace LogExplorer
             int i = 1;
             foreach (ReportLine line in ReportList)
             {
-                sheet.Cells[i, "A"] = ((CompanyReportLine)line).NN;
-                sheet.Cells[i, "B"] = ((CompanyReportLine)line).Name;
-                sheet.Cells[i, "C"] = ((CompanyReportLine)line).IP;
-                sheet.Cells[i, "C"] = ((CompanyReportLine)line).SummDate;
+                //sheet.Cells[i, "A"] = ((CompanyReportLine)line).NN;
+                //sheet.Cells[i, "B"] = ((CompanyReportLine)line).Name;
+                //sheet.Cells[i, "C"] = ((CompanyReportLine)line).IP;
+                //sheet.Cells[i, "C"] = ((CompanyReportLine)line).SummDate;
             }
 
 
         }
+
     }
     class CompanyUserReport : Report
     {
@@ -249,15 +316,16 @@ namespace LogExplorer
             int i = 1;
             foreach (ReportLine line in ReportList)
             {
-                sheet.Cells[i, "A"] = ((CompanyUserReportLine)line).NN;
-                sheet.Cells[i, "B"] = ((CompanyUserReportLine)line).Company;
-                sheet.Cells[i, "C"] = ((CompanyUserReportLine)line).QUser;
+                //sheet.Cells[i, "A"] = ((CompanyUserReportLine)line).NN;
+                //sheet.Cells[i, "B"] = ((CompanyUserReportLine)line).Company;
+                //sheet.Cells[i, "C"] = ((CompanyUserReportLine)line).QUser;
 
 
             }
 
 
         }
+
     }
     class ErrorReport : Report
     {
@@ -287,15 +355,16 @@ namespace LogExplorer
             int i = 1;
             foreach (ReportLine line in ReportList)
             {
-                sheet.Cells[i, "A"] = ((ErrorReportLine)line).NN;
-                sheet.Cells[i, "B"] = ((ErrorReportLine)line).Name;
-                sheet.Cells[i, "C"] = ((ErrorReportLine)line).Company;
-                sheet.Cells[i, "D"] = ((ErrorReportLine)line).IP;
-                sheet.Cells[i, "E"] = ((ErrorReportLine)line).ID;
-                sheet.Cells[i, "F"] = ((ErrorReportLine)line).InDate;
-                sheet.Cells[i, "G"] = ((ErrorReportLine)line).OutDate;
+                //sheet.Cells[i, "A"] = ((ErrorReportLine)line).NN;
+                //sheet.Cells[i, "B"] = ((ErrorReportLine)line).Name;
+                //sheet.Cells[i, "C"] = ((ErrorReportLine)line).Company;
+                //sheet.Cells[i, "D"] = ((ErrorReportLine)line).IP;
+                //sheet.Cells[i, "E"] = ((ErrorReportLine)line).ID;
+                //sheet.Cells[i, "F"] = ((ErrorReportLine)line).InDate;
+                //sheet.Cells[i, "G"] = ((ErrorReportLine)line).OutDate;
             }
         }
+
     }
 
     [Serializable, XmlInclude(typeof(UserReportLine))]
@@ -303,9 +372,9 @@ namespace LogExplorer
     [Serializable, XmlInclude(typeof(IPReportLine))]
     public class UserReportLine : ReportLine
     {
-        public int NN;
-        public string Name;
-        public string Company;
+        public int NN { get; set; }
+        public string Name { get; set; }
+        public string Company { get; set; }
         public string IP;
         public string ID;
         public DateTime InDate;
