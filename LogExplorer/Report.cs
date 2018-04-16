@@ -14,25 +14,22 @@ using System.Reflection;
 namespace LogExplorer
 {
 
-    public interface IReport
-    {
-    }
-
-    public abstract class Report : IReport
+    public abstract class Report
     {
         public List<ReportLine> ReportList;
         public string FileName;
 
 
         public abstract void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData);
-        public abstract void FillRows();
+
+       
 
         internal void Write(string filePath, bool xml, bool xls)
         {
             if (xml)
                 WriteToXML<List<ReportLine>>(ReportList, filePath);
             if (xls)
-                WriteToXLS<ReportLine>(ReportList, filePath);
+                WriteToXLS( filePath);
         }
 
 
@@ -89,20 +86,12 @@ namespace LogExplorer
         //}
 
 
-        private void WriteToXLS<T>(List<T> reportLine, string filePath)
+        private void WriteToXLS(string filePath)
         {
-            string fullPath = Environment.CurrentDirectory + "\\" + FileName + ".xlsx";
-
+            string fullPath = filePath + "\\" + FileName + ".xlsx";
             DataTable excelDT = new DataTable();
 
-            Type type = this.GetType();
-
-            PropertyInfo[] Props = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-            Console.WriteLine("The number of public properties: {0}.\n",
-                      Props.Length);
-
-            excelDT = ToDataTable <ReportLine> (ReportList);
+            excelDT = ToDataTable(ReportList);
 
             using (XLWorkbook wb = new XLWorkbook())
             {
@@ -112,17 +101,19 @@ namespace LogExplorer
 
         }
 
-        public DataTable ToDataTable<T>(List<T> items)
+        public DataTable ToDataTable(List<ReportLine> lines)
         {
-            DataTable dataTable = new DataTable(this.GetType().Name);
-            PropertyInfo[] Props = this.GetType().GetProperties();
+            
+            Type type = lines[0].GetLineType();
 
-  
+            DataTable dataTable = new DataTable(type.Name);
+            PropertyInfo[] Props = type.GetProperties();
+
             foreach (PropertyInfo prop in Props)
             {
                 dataTable.Columns.Add(prop.Name);
             }
-            foreach (T item in items)
+            foreach (ReportLine item in lines)
             {
                 var values = new object[Props.Length];
                 for (int i = 0; i < Props.Length; i++)
@@ -134,9 +125,6 @@ namespace LogExplorer
             return dataTable;
         }
     }
-
-
-
 
     class UserReport : Report
     {
@@ -160,27 +148,8 @@ namespace LogExplorer
             }
 
         }
-
-        public override void FillRows()
-        {
-            int i = 1;
-            foreach (ReportLine line in ReportList)
-            {
-                //sheet.Cells[i, "A"] = ((UserReportLine)line).NN;
-                //sheet.Cells[i, "B"] = ((UserReportLine)line).Name;
-                //sheet.Cells[i, "C"] = ((UserReportLine)line).Company;
-                //sheet.Cells[i, "D"] = ((UserReportLine)line).IP;
-                //sheet.Cells[i, "E"] = ((UserReportLine)line).ID;
-                //sheet.Cells[i, "F"] = ((UserReportLine)line).InDate;
-                //sheet.Cells[i, "G"] = ((UserReportLine)line).OutDate;
-                //sheet.Cells[i++, "H"] = ((UserReportLine)line).Error;
-            }
-
-
-        }
-
-
     }
+
     class IPReport : Report
     {
         private ReportFactory factory;
@@ -215,20 +184,8 @@ namespace LogExplorer
                 ((IPReportLine)line).QConnect = dict[((IPReportLine)line).IP];
             }
         }
-        public override void FillRows()
-        {
-            int i = 1;
-            foreach (ReportLine line in ReportList)
-            {
-                //sheet.Cells[i, "A"] = ((IPReportLine)line).NN;
-                //sheet.Cells[i, "B"] = ((IPReportLine)line).Name;
-                //sheet.Cells[i, "D"] = ((IPReportLine)line).IP;
-                //sheet.Cells[i, "E"] = ((IPReportLine)line).InDate;
-                //sheet.Cells[i, "F"] = ((IPReportLine)line).OutDate;
-                //sheet.Cells[i++, "G"] = ((IPReportLine)line).QConnect;
-            }
+  
 
-        }
 
     }
     class CompanyReport : Report
@@ -244,7 +201,7 @@ namespace LogExplorer
 
             string company = (string)formData["Company"];
             List<LogLine> findList = logLineList.Where(ll => ll.Company == company).ToList();
-            FileName = "Отчет по организации: " + company;
+            FileName = "Отчет по организации_" + company;
             ReportList = new List<ReportLine>();
 
 
@@ -253,19 +210,8 @@ namespace LogExplorer
                 ReportList.Add(factory.CreateLine(line));
             }
         }
-        public override void FillRows()
-        {
-            int i = 1;
-            foreach (ReportLine line in ReportList)
-            {
-                //sheet.Cells[i, "A"] = ((CompanyReportLine)line).NN;
-                //sheet.Cells[i, "B"] = ((CompanyReportLine)line).Name;
-                //sheet.Cells[i, "C"] = ((CompanyReportLine)line).IP;
-                //sheet.Cells[i, "C"] = ((CompanyReportLine)line).SummDate;
-            }
+      
 
-
-        }
 
     }
     class CompanyUserReport : Report
@@ -311,20 +257,7 @@ namespace LogExplorer
                 ReportList.Add(rl);
             }
         }
-        public override void FillRows()
-        {
-            int i = 1;
-            foreach (ReportLine line in ReportList)
-            {
-                //sheet.Cells[i, "A"] = ((CompanyUserReportLine)line).NN;
-                //sheet.Cells[i, "B"] = ((CompanyUserReportLine)line).Company;
-                //sheet.Cells[i, "C"] = ((CompanyUserReportLine)line).QUser;
-
-
-            }
-
-
-        }
+      
 
     }
     class ErrorReport : Report
@@ -349,37 +282,29 @@ namespace LogExplorer
                 ReportList.Add(factory.CreateLine(line));
             }
 
-        }
-        public override void FillRows()
-        {
-            int i = 1;
-            foreach (ReportLine line in ReportList)
-            {
-                //sheet.Cells[i, "A"] = ((ErrorReportLine)line).NN;
-                //sheet.Cells[i, "B"] = ((ErrorReportLine)line).Name;
-                //sheet.Cells[i, "C"] = ((ErrorReportLine)line).Company;
-                //sheet.Cells[i, "D"] = ((ErrorReportLine)line).IP;
-                //sheet.Cells[i, "E"] = ((ErrorReportLine)line).ID;
-                //sheet.Cells[i, "F"] = ((ErrorReportLine)line).InDate;
-                //sheet.Cells[i, "G"] = ((ErrorReportLine)line).OutDate;
-            }
-        }
-
+        }      
     }
 
     [Serializable, XmlInclude(typeof(UserReportLine))]
-    public abstract class ReportLine { }
+    public abstract class ReportLine {
+        public abstract Type GetLineType();
+    }
     [Serializable, XmlInclude(typeof(IPReportLine))]
     public class UserReportLine : ReportLine
     {
         public int NN { get; set; }
         public string Name { get; set; }
         public string Company { get; set; }
-        public string IP;
-        public string ID;
-        public DateTime InDate;
-        public DateTime OutDate;
-        public string Error;
+        public string IP { get; set; }
+        public string ID { get; set; }
+        public DateTime InDate { get; set; }
+        public DateTime OutDate { get; set; }
+        public string Error { get; set; }
+
+        public override Type GetLineType()
+        {
+            return typeof(UserReportLine);
+        }
 
         private LogLine LOG_LINE;
 
@@ -401,14 +326,19 @@ namespace LogExplorer
     [Serializable, XmlInclude(typeof(CompanyReportLine))]
     public class IPReportLine : ReportLine
     {
-        public string NN;
-        public string Name;
-        public string IP;
-        public string InDate;
-        public string OutDate;
-        public int QConnect;
+        public string NN { get; set; }
+        public string Name { get; set; }
+        public string IP { get; set; }
+        public string InDate { get; set; }
+        public string OutDate { get; set; }
+        public int QConnect { get; set; }
 
         private LogLine LOG_LINE;
+
+        public override Type GetLineType()
+        {
+            return typeof(IPReportLine);
+        }
 
         public IPReportLine() { }
 
@@ -448,15 +378,20 @@ namespace LogExplorer
     [Serializable, XmlInclude(typeof(CompanyUserReportLine))]
     public class CompanyReportLine : ReportLine
     {
-        public string NN;
-        public string Name;
-        public string IP;
-        public string SummDate;
+        public string NN { get; set; }
+        public string Name { get; set; }
+        public string IP { get; set; }
+        public string SummDate { get; set; }
 
 
         private LogLine LOG_LINE;
 
         public CompanyReportLine() { }
+
+        public override Type GetLineType()
+        {
+            return typeof(CompanyReportLine);
+        }
 
         public CompanyReportLine(LogLine ll)
         {
@@ -473,11 +408,16 @@ namespace LogExplorer
     [Serializable, XmlInclude(typeof(ErrorReportLine))]
     public class CompanyUserReportLine : ReportLine
     {
-        public int NN;
-        public string Company;
-        public int QUser;
+        public int NN { get; set; }
+        public string Company { get; set; }
+        public int QUser { get; set; }
 
         private LogLine LOG_LINE;
+
+        public override Type GetLineType()
+        {
+            return typeof(CompanyUserReportLine);
+        }
 
         public CompanyUserReportLine() { }
 
@@ -490,15 +430,20 @@ namespace LogExplorer
     [Serializable]
     public class ErrorReportLine : ReportLine
     {
-        public int NN;
-        public string Name;
-        public string Company;
-        public string IP;
-        public string ID;
-        public DateTime InDate;
-        public DateTime OutDate;
+        public int NN { get; set; }
+        public string Name { get; set; }
+        public string Company { get; set; }
+        public string IP { get; set; }
+        public string ID { get; set; }
+        public DateTime InDate { get; set; }
+        public DateTime OutDate { get; set; }
 
         private LogLine LOG_LINE;
+
+        public override Type GetLineType()
+        {
+            return typeof(ErrorReportLine);
+        }
 
         public ErrorReportLine() { }
 
