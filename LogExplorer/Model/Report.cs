@@ -29,7 +29,7 @@ namespace LogExplorer
             if (xml)
                 WriteToXML<List<ReportLine>>(ReportList, filePath);
             if (xls)
-                WriteToXLS( filePath);
+                WriteToXLS(filePath);
         }
 
 
@@ -49,7 +49,8 @@ namespace LogExplorer
 
         // Альтернативный способ используя COM объекты. Использовался в прошлой версии тестового.
         // Исключен из-за возможных проблем доступа к excel файлу, и обязательного условия наличия установленного MS Office 
-        // Предполагаю что ошибки в этом методе были
+        // Предполагаю что ошибки были в этом методе 
+
         //  using Excel = Microsoft.Office.Interop.Excel;
         //          public Excel.Worksheet sheet;
         //private void WriteToXLS<T>(string filePath)
@@ -103,8 +104,9 @@ namespace LogExplorer
 
         public DataTable ToDataTable(List<ReportLine> lines)
         {
-            
-            Type type = lines[0].GetLineType();
+            Type type = typeof(ReportLine);
+            if(lines.Capacity != 0 )
+                type = lines[0].GetLineType();
 
             DataTable dataTable = new DataTable(type.Name);
             PropertyInfo[] Props = type.GetProperties();
@@ -146,7 +148,6 @@ namespace LogExplorer
             {
                 ReportList.Add(factory.CreateLine(line));
             }
-
         }
     }
 
@@ -204,10 +205,21 @@ namespace LogExplorer
             FileName = "Отчет по организации_" + company;
             ReportList = new List<ReportLine>();
 
-
-            foreach (LogLine line in findList)
+            Dictionary<string, TimeSpan> dict = new Dictionary<string, TimeSpan>();
+            foreach (LogLine logLine in findList)
             {
-                ReportList.Add(factory.CreateLine(line));
+                string Name = logLine.Name;
+                if (dict.ContainsKey(Name))
+                {
+                    dict[Name] += logLine.OutDate - logLine.InDate;
+                }
+                else {dict.Add(Name, logLine.OutDate - logLine.InDate);}
+
+                ReportList.Add(factory.CreateLine(logLine));
+            }
+            foreach (ReportLine reportLine in ReportList)
+            {
+                ((CompanyReportLine)reportLine).SummDate = dict[((CompanyReportLine)reportLine).Name];
             }
         }
       
@@ -381,7 +393,7 @@ namespace LogExplorer
         public string NN { get; set; }
         public string Name { get; set; }
         public string IP { get; set; }
-        public string SummDate { get; set; }
+        public TimeSpan SummDate { get; set; }
 
 
         private LogLine LOG_LINE;
@@ -397,8 +409,8 @@ namespace LogExplorer
         {
             this.LOG_LINE = ll;
             this.NN = ll.NN.ToString();
-            this.IP = ll.Name.ToString();
-            this.Name = ll.IP;
+            this.IP = ll.IP.ToString();
+            this.Name = ll.Name;
 
 
 

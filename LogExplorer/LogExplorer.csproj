@@ -115,10 +115,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CheckedListItem.cs" />
-    <Compile Include="Report.cs" />
+    <Compile Include="ViewModel\LogLineVM.cs" />
+    <Compile Include="Model\Report.cs" />
     <Compile Include="ReportWindow.xaml.cs">
       <DependentUpon>ReportWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LogLineView.xaml.cs">
+      <DependentUpon>LogLineView.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -128,7 +131,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LogLine.cs">
+    <Compile Include="Model\LogLine.cs">
       <CustomToolNamespace>LogExplorer</CustomToolNamespace>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
@@ -136,6 +139,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ReportWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LogLineView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

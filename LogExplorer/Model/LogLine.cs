@@ -1,13 +1,30 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace LogExplorer
 {
-    public class LogLine
+
+    /// <summary>
+    /// Класс данных строк лога
+    /// </summary>
+    public class LogLine : INotifyPropertyChanged
     {
         public int NN { get; set; }
         public string Name { get; set; }
-        public string Company { get; set; }
+
+
+        private string company;
+        public string Company
+        {
+            get { return company; }
+            set
+            {
+                company = value;
+                if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Company"));
+            }
+        }
+
         public string IP { get; set; }
         public string ID { get; set; }
         public DateTime InDate { get; set; }
@@ -17,8 +34,13 @@ namespace LogExplorer
 
         public LogLine() { }
 
+        public event PropertyChangedEventHandler PropertyChanged;
 
         private string LogString;
+
+        /// <summary>
+        /// Конструктор загрузки строки с проверкой на валидность дат и ip-адреса
+        /// </summary>
         public LogLine(String ls)
         {
             LogString = ls;
