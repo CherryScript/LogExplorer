@@ -8,6 +8,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="495" Width="932">
     <Grid>
-        <views:LogLineView x:Name = "LogLineViewControl" Loaded = "LogLineViewControl_Loaded"/>
+        <views:LogLineView x:Name = "LogLineViewControl"/>
     </Grid>
 </Window>

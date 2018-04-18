@@ -14,6 +14,9 @@ using System.Reflection;
 namespace LogExplorer
 {
 
+    /// <summary>
+    /// Абстракт отчета
+    /// </summary>
     public abstract class Report
     {
         public List<ReportLine> ReportList;
@@ -22,8 +25,10 @@ namespace LogExplorer
 
         public abstract void CreateReport(ObservableCollection<LogLine> logLineList, Dictionary<string, object> formData);
 
-       
 
+        /// <summary>
+        /// Общий метод записи
+        /// </summary>
         internal void Write(string filePath, bool xml, bool xls)
         {
             if (xml)
@@ -32,7 +37,9 @@ namespace LogExplorer
                 WriteToXLS(filePath);
         }
 
-
+        /// <summary>
+        /// Метод записи в XML
+        /// </summary>
         internal void WriteToXML<T>(T reportList, string filePath)
         {
             string fullPath = filePath + "\\" + FileName + ".xml";
@@ -47,10 +54,9 @@ namespace LogExplorer
         }
 
 
-        // Альтернативный способ используя COM объекты. Использовался в прошлой версии тестового.
-        // Исключен из-за возможных проблем доступа к excel файлу, и обязательного условия наличия установленного MS Office 
-        // Предполагаю что ошибки были в этом методе 
-
+        /// TODO: Альтернативный способ выгрузки в excel, используя COM объекты. Использовался в прошлой версии тестового.
+        /// Исключен из-за возможных проблем доступа к excel файлу, и обязательного условия наличия установленного MS Office 
+        /// Предполагаю что ошибки были в этом методе 
         //  using Excel = Microsoft.Office.Interop.Excel;
         //          public Excel.Worksheet sheet;
         //private void WriteToXLS<T>(string filePath)
@@ -86,7 +92,9 @@ namespace LogExplorer
         //    }  
         //}
 
-
+        /// <summary>
+        /// Метод записи в XLS. Используется библиотека ClosedXML
+        /// </summary>
         private void WriteToXLS(string filePath)
         {
             string fullPath = filePath + "\\" + FileName + ".xlsx";
@@ -94,15 +102,16 @@ namespace LogExplorer
 
             excelDT = ToDataTable(ReportList);
 
-            using (XLWorkbook wb = new XLWorkbook())
+            using (XLWorkbook workbook = new XLWorkbook())
             {
-                wb.Worksheets.Add(excelDT, "Отчет");
-                wb.SaveAs(fullPath);
+                workbook.Worksheets.Add(excelDT, "Отчет");
+                workbook.SaveAs(fullPath);
             }
-
         }
-
-        public DataTable ToDataTable(List<ReportLine> lines)
+        /// <summary>
+        /// Закрытый метод перевода List в DataTable. Тербуется для экспорта в XLS
+        /// </summary>
+        private DataTable ToDataTable(List<ReportLine> lines)
         {
             Type type = typeof(ReportLine);
             if(lines.Capacity != 0 )
@@ -127,7 +136,9 @@ namespace LogExplorer
             return dataTable;
         }
     }
-
+    /// <summary>
+    /// Наследник абстракта Report. Отчет по пользователям за сутки.
+    /// </summary>
     class UserReport : Report
     {
         private ReportFactory factory;
@@ -150,7 +161,9 @@ namespace LogExplorer
             }
         }
     }
-
+    /// <summary>
+    /// Наследник абстракта Report. Отчет по количеству подключений с каждого IP адреса за период
+    /// </summary>
     class IPReport : Report
     {
         private ReportFactory factory;
@@ -185,10 +198,10 @@ namespace LogExplorer
                 ((IPReportLine)line).QConnect = dict[((IPReportLine)line).IP];
             }
         }
-  
-
-
     }
+    /// <summary>
+    /// Наследник абстракта Report. Отчет по организации за всё время
+    /// </summary>
     class CompanyReport : Report
     {
         private ReportFactory factory;
@@ -222,10 +235,10 @@ namespace LogExplorer
                 ((CompanyReportLine)reportLine).SummDate = dict[((CompanyReportLine)reportLine).Name];
             }
         }
-      
-
-
     }
+    /// <summary>
+    /// Наследник абстракта Report. Отчет по количеству пользователей от организаций за период
+    /// </summary>
     class CompanyUserReport : Report
     {
         private ReportFactory factory;
@@ -272,6 +285,9 @@ namespace LogExplorer
       
 
     }
+    /// <summary>
+    /// Наследник абстракта Report. Отчет по ошибкам за период
+    /// </summary>
     class ErrorReport : Report
     {
         private ReportFactory factory;
@@ -297,10 +313,17 @@ namespace LogExplorer
         }      
     }
 
+
+    /// <summary>
+    /// Абстракт строки отчета
+    /// </summary>
     [Serializable, XmlInclude(typeof(UserReportLine))]
     public abstract class ReportLine {
         public abstract Type GetLineType();
     }
+    /// <summary>
+    /// Наследник формата строки для отчета по пользователям
+    /// </summary>
     [Serializable, XmlInclude(typeof(IPReportLine))]
     public class UserReportLine : ReportLine
     {
@@ -335,6 +358,9 @@ namespace LogExplorer
             this.Error = ll.Error;
         }
     }
+    /// <summary>
+    /// Наследник формата строки для отчета по IP
+    /// </summary>
     [Serializable, XmlInclude(typeof(CompanyReportLine))]
     public class IPReportLine : ReportLine
     {
@@ -364,7 +390,7 @@ namespace LogExplorer
             this.Name = ll.Name;
         }
 
-        //Если потребуются заголовки
+        /// TODO:Если потребуются заголовки
         //private static IPReportLine _header;
         //public static string NN_HEADER = "Порядковый номер";
         //public static string NAME_HEADER = "Пользователь";
@@ -387,6 +413,9 @@ namespace LogExplorer
         //    return _header;
         //}
     }
+    /// <summary>
+    /// Наследник формата строки для отчета по организациям
+    /// </summary>
     [Serializable, XmlInclude(typeof(CompanyUserReportLine))]
     public class CompanyReportLine : ReportLine
     {
@@ -411,12 +440,12 @@ namespace LogExplorer
             this.NN = ll.NN.ToString();
             this.IP = ll.IP.ToString();
             this.Name = ll.Name;
-
-
-
         }
 
     }
+    /// <summary>
+    /// Наследник формата строки для отчета по пользователям от организации
+    /// </summary>
     [Serializable, XmlInclude(typeof(ErrorReportLine))]
     public class CompanyUserReportLine : ReportLine
     {
@@ -439,6 +468,9 @@ namespace LogExplorer
             this.QUser = 1;
         }
     }
+    /// <summary>
+    /// Наследник формата строки для отчета по ошибкам
+    /// </summary>
     [Serializable]
     public class ErrorReportLine : ReportLine
     {
@@ -472,6 +504,9 @@ namespace LogExplorer
         }
     }
 
+    /// <summary>
+    /// Фабрики создания соответствующих ReportLine
+    /// </summary>
     abstract class ReportFactory
     {
         public abstract ReportLine CreateLine(LogLine ll);

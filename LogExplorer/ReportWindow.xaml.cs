@@ -6,14 +6,15 @@ using System.Windows;
 namespace LogExplorer
 {
     /// <summary>
-    /// Логика взаимодействия для Window1.xaml
+    /// Логика взаимодействия для ReportWindow.xaml
     /// </summary>
-    /// 
     public partial class ReportWindow : Window
     {
         private string ReportFolder;
         private ObservableCollection<LogLine> LogLineCollection;
-
+        /// <summary>
+        /// Конструктор инициализации MV
+        /// </summary>
         public ReportWindow(ObservableCollection<LogLine> logLineCollection)
         {
             ReportFolder = Environment.CurrentDirectory;
@@ -24,13 +25,14 @@ namespace LogExplorer
             dpInDate.SelectedDate = new DateTime(2017, 06, 21, 0, 0, 0);
             dpOutDate.SelectedDate = new DateTime(2017, 06, 23, 0, 0, 0);
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Листенер нажатия на кнопку "Создать отчеты"
+        /// </summary>
+        private void btnCreateReport_Click(object sender, RoutedEventArgs e)
         {
-            pb.Visibility = Visibility.Visible;
             Dictionary<string, object> dict = new Dictionary<string, object>();
-            bool xml = (bool) cbXML.IsChecked;
-            bool xls = (bool) cbXLS.IsChecked;
+            bool xml = (bool)cbXML.IsChecked;
+            bool xls = (bool)cbXLS.IsChecked;
 
             dict.Add("Company", tbCompany.Text);
             dict.Add("InDate", dpInDate.SelectedDate);
@@ -38,6 +40,7 @@ namespace LogExplorer
 
             try
             {
+
                 if (cbUserReportBox.IsChecked == true)
                 {
                     Report userReport = new UserReport(new UserReportFactory());
@@ -69,19 +72,22 @@ namespace LogExplorer
                     errorreport.Write(ReportFolder, xml, xls);
                 }
                 MessageBox.Show("Отчеты сохранены в " + ReportFolder);
-               
+
             }
+
             catch (Exception ex)
             {
-
                 MessageBox.Show(ex.Message);
             }
-            finally {
-                pb.Visibility = Visibility.Hidden;
-            }    
-        }
+            finally
+            {
+            }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        }
+        /// <summary>
+        /// Листенер нажатия на кнопку "Обзор"
+        /// </summary>
+        private void btnBrowse_Click_(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog dlgFolder = new System.Windows.Forms.FolderBrowserDialog();
             if (dlgFolder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -92,8 +98,10 @@ namespace LogExplorer
                 tbReportFolder.Text = ReportFolder;
             }
         }
-
-        private void Button_Click_2(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Листенер нажатия на кнопку "Отмена"
+        /// </summary>
+        private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
